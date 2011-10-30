@@ -21,13 +21,13 @@ def generate_filename(apk_info, pattern):
     new_filename = pattern.format(
         pn = apk_info.get('package_name', apk_info['old_filename']),
         vc = apk_info.get('version_code', '?'),
-        vn = apk_info.get('version_name', '?.?.?'),
+        vn = apk_info.get('version_name', '?.?.?')[:32],
         sv = apk_info.get('sdk_version', '?'),
         tsv = apk_info.get('target_sdk_version', '?'),
-        al = apk_info.get('app_label', ''),
+        al = apk_info.get('app_label', '')[:128],
         h = apk_info['md5'],
     )
-    return new_filename
+    return new_filename.replace('/', '_')
 
 def extract_metadata(path):
     try:
@@ -69,7 +69,7 @@ def parse_paths(paths, action):
     statistic = {
         'not_apks': 0,
         'bad_metadata': 0,
-        'filenamed_up_to_date': 0,
+        'filenames_up_to_date': 0,
         'dirs_walked': 0,
         'files_checked': 0,
         'actions_performed': 0,
@@ -83,7 +83,7 @@ def parse_paths(paths, action):
                 statistic['files_checked'] += 1
 
                 if filename[-4:] != '.apk':
-                    not_apks += 1
+                    statistic['not_apks'] += 1
                     continue
 
                 full_path = os.path.join(root, filename)
@@ -95,7 +95,7 @@ def parse_paths(paths, action):
                 metadata['old_filename'] = filename[:-4]
                 new_filename = generate_filename(metadata, rename_pattern)
                 if filename == new_filename:
-                    statistic['filenamed_up_to_date'] += 1
+                    statistic['filenames_up_to_date'] += 1
 
                 #new_full_path = os.path.join(root, new_filename)
                 #print(new_filename)
